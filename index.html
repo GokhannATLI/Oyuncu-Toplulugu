@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oyuncu Topluluğu</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* SİBER DİYAR (VARSAYILAN KARANLIK TEMA) */
+        :root {
+            --bg-dark: #0b0c10;
+            --bg-light-dark: #1f2833;
+            --accent-neon: #00f2fe;
+            --accent-purple: #4facfe;
+            --text-white: #ffffff;
+            --text-gray: #c5c6c7;
+            --live-red: #ff0055;
+            --card-border: rgba(255, 255, 255, 0.05);
+            --navbar-bg: rgba(11, 12, 16, 0.95);
+            --input-bg: #0b0c10;
+        }
+
+        /* ALICE HARİKALAR DİYARI KAPILARI (DÜZENİ BOZMADAN RENK DEĞİŞİMİ) */
+        [data-realm="news"] {
+            --bg-dark: #120407;
+            --bg-light-dark: #2d0b13;
+            --accent-neon: #ffd700; /* Altın Sarısı */
+            --accent-purple: #ff3366; /* Kraliçe Kırmızısı */
+            --card-border: rgba(255, 215, 0, 0.15);
+            --navbar-bg: rgba(18, 4, 7, 0.95);
+            --input-bg: #120407;
+        }
+
+        [data-realm="games"] {
+            --bg-dark: #0d051a;
+            --bg-light-dark: #220e3d;
+            --accent-neon: #39ff14; /* Neon Yeşil */
+            --accent-purple: #9d4edd; /* Şapkacı Moru */
+            --card-border: rgba(57, 255, 20, 0.15);
+            --navbar-bg: rgba(13, 5, 26, 0.95);
+            --input-bg: #0d051a;
+        }
+
+        [data-realm="tech"] {
+            --bg-dark: #020d0a;
+            --bg-light-dark: #0b2e24;
+            --accent-neon: #00e5ff; /* Elektrik Mavisi */
+            --accent-purple: #00ffaa; /* Tavşan Yeşili */
+            --card-border: rgba(0, 255, 170, 0.15);
+            --navbar-bg: rgba(2, 13, 10, 0.95);
+            --input-bg: #020d0a;
+        }
+
+        /* AÇIK TEMA DEĞİŞKENLERİ */
+        [data-theme="light"] {
+            --bg-dark: #f4f6f9;
+            --bg-light-dark: #ffffff;
+            --accent-neon: #008fa3;
+            --accent-purple: #3a7bd5;
+            --text-white: #1a1a1a;
+            --text-gray: #555555;
+            --card-border: rgba(0, 0, 0, 0.08);
+            --navbar-bg: rgba(255, 255, 255, 0.95);
+            --input-bg: #f4f6f9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+            scroll-behavior: smooth;
+            transition: background-color 0.5s ease, border-color 0.5s ease, color 0.3s ease, box-shadow 0.5s ease;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-white);
+            overflow-x: hidden;
+            padding-top: 80px;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--navbar-bg);
+            padding: 20px 8%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--card-border);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo { font-size: 22px; font-weight: 800; letter-spacing: 2px; color: var(--text-white); }
+        .gaming { color: var(--accent-neon); text-shadow: 0 0 10px rgba(0, 242, 254, 0.3); }
+        .nav-links { display: flex; align-items: center; list-style: none; }
+        .nav-links li { margin-left: 18px; display: flex; align-items: center; }
+        .nav-links a { color: var(--text-gray); text-decoration: none; font-weight: 600; font-size: 14px; transition: 0.3s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent-neon); }
+
+        .theme-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--text-white);
+            font-size: 18px;
+            cursor: pointer;
+            margin-left: 15px;
+            transition: transform 0.3s;
+        }
+        .theme-toggle-btn:hover { transform: scale(1.1); color: var(--accent-neon); }
+
+        .nav-discord-btn {
+            background-color: #5865F2;
+            color: white !important;
+            padding: 8px 16px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hamburger-menu {
+            display: none;
+            font-size: 24px;
+            color: var(--text-white);
+            cursor: pointer;
+        }
+
+        .hero-section {
+            height: 45vh;
+            background-image: url('https://images.unsplash.com/photo-1538481199705-c710c4e965fc?q=80&w=1600&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(11, 12, 16, 0.5), var(--bg-dark));
+        }
+
+        .hero-content { position: relative; z-index: 2; max-width: 800px; padding: 0 20px; }
+        .hero-title { font-size: 2.5rem; font-weight: 900; margin-bottom: 15px; text-transform: uppercase; color: #fff; }
+        .hero-content p { font-size: 1.1rem; color: #e0e0e0; margin-bottom: 25px; }
+
+        /* GÜNÜN İPUCU KUTUSU */
+        .tip-container {
+            max-width: 84%;
+            margin: -30px auto 20px auto;
+            position: relative;
+            z-index: 10;
+            background-color: var(--bg-light-dark);
+            border: 1px solid var(--accent-neon);
+            border-radius: 8px;
+            padding: 15px 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        .tip-content { display: flex; align-items: center; gap: 15px; }
+        .tip-icon { color: var(--accent-neon); font-size: 24px; }
+        .tip-text h5 { color: var(--accent-neon); font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+        .tip-text p { font-size: 14px; color: var(--text-white); }
+        .tip-refresh-btn { background: none; border: none; color: var(--text-gray); cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .tip-refresh-btn:hover { color: var(--accent-neon); transform: rotate(180deg); }
+
+        .main-layout { display: grid; grid-template-columns: 2.2fr 1fr; gap: 40px; }
+        .section-container { padding: 40px 8%; }
+        .section-title { font-size: 1.6rem; margin-bottom: 30px; position: relative; display: inline-block; text-transform: uppercase; color: var(--text-white); }
+        .section-title::after { content: ''; position: absolute; width: 40%; height: 4px; background: var(--accent-neon); bottom: -8px; left: 0; }
+
+        /* AKILLI ARAMA ÇUBUĞU */
+        .search-wrapper { margin-bottom: 25px; width: 100%; }
+        .search-bar-container { position: relative; width: 100%; }
+        .search-bar-container i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-gray); }
+        .search-input { width: 100%; background-color: var(--bg-light-dark); border: 1px solid var(--card-border); color: var(--text-white); padding: 14px 15px 14px 45px; border-radius: 8px; outline: none; font-size: 15px; }
+        .search-input:focus { border-color: var(--accent-neon); box-shadow: 0 0 10px rgba(0, 242, 254, 0.1); }
+
+        .cards-grid { display: flex; flex-direction: column; gap: 20px; }
+        .full-width-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; }
+
+        .horizontal-card {
+            display: flex;
+            flex-direction: row;
+            background-color: var(--bg-light-dark);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+            height: 160px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .horizontal-card:hover { transform: translateY(-3px); border-color: var(--accent-neon); box-shadow: 0 0 15px rgba(0, 242, 254, 0.1); }
+
+        .horizontal-card .card-img { width: 180px; height: 100%; flex-shrink: 0; background-size: cover; background-position: center; }
+        .horizontal-card .card-content { padding: 15px 20px; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; overflow: hidden; }
+
+        .badge { padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; display: inline-block; margin-bottom: 8px; margin-right: 5px; }
+        .badge-game { background-color: #ff007f; color: white; }
+        .badge-tech { background-color: #00f2fe; color: #000; }
+        .badge-new { background-color: #00ff66; color: #000; }
+        .badge-popular { background-color: #ffaa00; color: #000; }
+
+        .horizontal-card h3 { font-size: 1.1rem; margin-bottom: 6px; line-height: 1.3; color: var(--text-white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .horizontal-card p { color: var(--text-gray); font-size: 0.85rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
+        .read-more { color: var(--accent-neon); text-decoration: none; font-weight: 600; font-size: 0.85rem; background: none; border: none; text-align: left; padding: 0; }
+        
+        .like-btn { background: none; border: none; color: var(--text-gray); cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; transition: 0.2s; padding: 5px; }
+        .like-btn:hover, .like-btn.liked { color: var(--live-red); }
+        .like-btn i { font-size: 1rem; }
+
+        .btn { 
+            padding: 12px 35px; 
+            border-radius: 5px; 
+            font-weight: 700; 
+            text-decoration: none; 
+            cursor: pointer; 
+            border: none; 
+            display: inline-block; 
+            transition: 0.3s; 
+        }
+        .btn-primary { 
+            background: linear-gradient(45deg, var(--accent-purple), var(--accent-neon)); 
+            color: #0b0c10 !important; 
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4); 
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.7);
+        }
+
+        /* ANKET KUTUSU */
+        .poll-container { background-color: var(--bg-light-dark); border-radius: 8px; padding: 20px; border: 1px solid var(--card-border); margin-top: 30px; }
+        .poll-title { font-size: 14px; font-weight: 700; color: var(--text-white); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid var(--accent-purple); padding-left: 8px; }
+        .poll-options { display: flex; flex-direction: column; gap: 10px; }
+        .poll-option-btn { width: 100%; text-align: left; padding: 12px 15px; background-color: var(--bg-dark); border: 1px solid var(--card-border); border-radius: 6px; color: var(--text-white); cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; position: relative; overflow: hidden; }
+        .poll-option-btn:hover { border-color: var(--accent-neon); }
+        
+        .poll-result-bar { position: absolute; top: 0; left: 0; height: 100%; background: linear-gradient(90deg, rgba(0, 242, 254, 0.15), rgba(79, 172, 254, 0.15)); width: 0%; transition: width 1s ease-out; z-index: 1; }
+        .poll-option-text { position: relative; z-index: 2; display: flex; justify-content: space-between; width: 100%; }
+
+        /* POPUP MODAL STYLES */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(7, 8, 10, 0.85); backdrop-filter: blur(8px); z-index: 9999; }
+        .modal-content { background-color: var(--bg-light-dark); color: var(--text-white); max-width: 600px; margin: 12% auto; padding: 30px; border-radius: 12px; border: 2px solid var(--accent-neon); box-shadow: 0 0 25px rgba(0, 242, 254, 0.2); position: relative; line-height: 1.6; }
+        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 30px; cursor: pointer; color: var(--text-gray); transition: color 0.3s; }
+        .modal-close:hover { color: #ff4757; }
+        .modal-content h2 { color: var(--accent-neon); margin-bottom: 15px; font-size: 1.6rem; text-transform: uppercase; border-bottom: 1px solid var(--card-border); padding-bottom: 10px; }
+        .modal-content p { color: var(--text-gray); font-size: 0.95rem; margin-bottom: 15px; }
+
+        .match-schedule { display: flex; flex-direction: column; gap: 15px; }
+        .match-card { background-color: var(--bg-light-dark); border-radius: 6px; padding: 15px; border-left: 4px solid var(--text-gray); position: relative; border-top: 1px solid var(--card-border); border-right: 1px solid var(--card-border); border-bottom: 1px solid var(--card-border); }
+        .match-card.live { border-left-color: var(--live-red); background: linear-gradient(90deg, rgba(255, 0, 85, 0.05), transparent); }
+        .match-card.upcoming { border-left-color: var(--accent-neon); }
+        .match-status { position: absolute; top: 15px; right: 15px; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px; }
+        .live .match-status { background-color: var(--live-red); color: white; }
+        .upcoming .match-status { background-color: rgba(0, 242, 254, 0.2); color: var(--accent-neon); }
+        .tournament { display: block; font-size: 11px; color: var(--accent-purple); font-weight: 700; margin-bottom: 8px; text-transform: uppercase; }
+        .teams { font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: var(--text-white); }
+        .vs { color: var(--live-red); font-style: italic; margin: 0 5px; }
+        .time { font-size: 12px; color: var(--text-gray); display: flex; align-items: center; gap: 5px; }
+
+        .dark-bg { background-color: rgba(31, 40, 51, 0.1); }
+        .tech-section { background-color: rgba(31, 40, 51, 0.15); }
+
+        /* YAMA KARŞILAŞTIRICI STYLES */
+        .stat-card { background-color: var(--bg-light-dark); border: 1px solid var(--card-border); border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .stat-info { display: flex; align-items: center; gap: 12px; }
+        .stat-name { font-weight: 600; color: var(--text-white); }
+        .badge-buff { background-color: rgba(0, 255, 136, 0.15); color: #00ff88; }
+        .badge-nerf { background-color: rgba(255, 70, 85, 0.15); color: #ff4655; }
+        .badge-neutral { background-color: rgba(255, 255, 255, 0.1); color: var(--text-gray); }
+        .stat-comparison { display: flex; align-items: center; gap: 15px; font-size: 0.95rem; }
+        .stat-val span { font-weight: bold; }
+        .stat-val.old span { color: var(--text-gray); text-decoration: line-through; }
+        .stat-val.buff span { color: #00ff88; }
+        .stat-val.nerf span { color: #ff4655; }
+        .stat-arrow { color: var(--text-gray); }
+
+        /* CROSSHAIR LAB STYLES */
+        .lab-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
+        .lab-preview { height: 400px; background-image: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop'); background-size: cover; background-position: center; border-radius: 8px; border: 2px solid var(--card-border); display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; box-shadow: inset 0 0 50px rgba(0,0,0,0.5); }
+        
+        .ch-wrapper { position: relative; display: flex; justify-content: center; align-items: center; }
+        .ch-line { position: absolute; background-color: #00ff00; }
+        .ch-dot { position: absolute; background-color: #00ff00; border-radius: 50%; display: none; }
+        
+        .lab-controls { background-color: var(--bg-light-dark); padding: 25px; border-radius: 8px; border: 1px solid var(--card-border); display: flex; flex-direction: column; gap: 20px; }
+        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        .control-header { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; color: var(--text-gray); }
+        .control-value { color: var(--accent-neon); font-weight: bold; }
+        .range-slider { width: 100%; -webkit-appearance: none; background: var(--bg-dark); height: 6px; border-radius: 3px; outline: none; }
+        .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent-neon); cursor: pointer; transition: 0.2s; }
+        .range-slider::-webkit-slider-thumb:hover { transform: scale(1.2); box-shadow: 0 0 10px var(--accent-neon); }
+        
+        .color-picker { width: 100%; height: 40px; border: none; border-radius: 4px; cursor: pointer; background: none; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-gray); font-weight: 600; cursor: pointer; }
+        .checkbox-group input { width: 18px; height: 18px; accent-color: var(--accent-neon); cursor: pointer; }
+
+        .code-output-container { margin-top: 15px; display: flex; gap: 10px; }
+        .code-output-container input { flex: 1; background-color: var(--bg-dark); border: 1px solid var(--card-border); color: var(--accent-neon); padding: 12px; border-radius: 6px; font-family: monospace; outline: none; text-align: center; font-size: 14px; }
+        .btn-copy { background-color: var(--accent-neon); color: #000; font-weight: bold; padding: 0 20px; border: none; border-radius: 6px; cursor: pointer; transition: 0.3s; }
+        .btn-copy:hover { background-color: var(--text-white); }
+
+        /* POPÜLER DONANIMLAR - EKİPMAN KÖŞESİ */
+        .gear-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 10px; }
+        .gear-card { background-color: var(--bg-light-dark); border: 1px solid var(--card-border); border-radius: 8px; padding: 20px; transition: 0.3s; }
+        .gear-card:hover { border-color: var(--accent-purple); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(79, 172, 254, 0.1); }
+        .gear-title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .gear-name { font-weight: 700; font-size: 1.1rem; color: var(--text-white); }
+        .gear-type { font-size: 10px; background-color: rgba(79, 172, 254, 0.15); color: var(--accent-purple); padding: 2px 8px; border-radius: 20px; font-weight: 700; text-transform: uppercase; }
+        .gear-pros-cons { font-size: 13px; line-height: 1.5; margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+        .gear-pro { color: #00ff66; display: flex; align-items: center; gap: 6px; }
+        .gear-con { color: #ff0055; display: flex; align-items: center; gap: 6px; }
+
+        .review-main { background-color: var(--bg-light-dark); padding: 30px; border-radius: 8px; border: 1px solid var(--card-border); border-left: 5px solid var(--accent-neon); }
+        .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .rating { background: rgba(0, 242, 254, 0.1); color: var(--accent-neon); padding: 8px 15px; border-radius: 20px; font-weight: 700; border: 1px solid var(--accent-neon); }
+        .review-body { color: var(--text-gray); line-height: 1.8; margin-bottom: 40px; }
+        .comments-section { border-top: 1px solid var(--card-border); padding-top: 30px; }
+        #username, #commentText { width: 100%; background-color: var(--input-bg); border: 1px solid var(--card-border); color: var(--text-white); padding: 12px; border-radius: 5px; margin-bottom: 15px; outline: none; }
+        #username:focus, #commentText:focus { border-color: var(--accent-neon); }
+        .btn-submit { background-color: var(--accent-neon); color: #000; padding: 10px 20px; font-weight: bold; border: none; cursor: pointer; border-radius: 4px; transition: 0.2s;}
+        .btn-submit:hover { background-color: var(--text-white); }
+        .comment-card { display: flex; gap: 15px; background-color: rgba(0,0,0,0.03); padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid var(--card-border); }
+        .comment-avatar { font-size: 24px; color: var(--accent-neon); }
+        .comment-content h5 { color: var(--text-white); margin-bottom: 5px; }
+        .comment-date { font-size: 11px; color: var(--text-gray); margin-left: 10px; }
+
+        footer { text-align: center; padding: 30px; background-color: var(--bg-dark); border-top: 1px solid var(--card-border); color: var(--text-gray); }
+
+        @media (max-width: 992px) { 
+            .main-layout { grid-template-columns: 1fr; } 
+            .full-width-grid { grid-template-columns: 1fr; } 
+            .lab-layout { grid-template-columns: 1fr; }
+        }
+        
+        @media (max-width: 768px) { 
+            .hamburger-menu { display: block; }
+            .nav-links { 
+                display: none; 
+                flex-direction: column; 
+                position: absolute; 
+                top: 80px; 
+                left: 0; 
+                width: 100%; 
+                background-color: var(--navbar-bg); 
+                padding: 20px 0; 
+                border-bottom: 1px solid var(--card-border);
+            }
+            .nav-links.active-menu { display: flex; }
+            .nav-links li { margin: 15px 0; justify-content: center; margin-left: 0; }
+            .horizontal-card { height: auto; flex-direction: column !important; } 
+            .horizontal-card .card-img { width: 100% !important; height: 150px !important; } 
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">OYUNCU <span class="gaming">TOPLULUĞU</span></div>
+    <div class="hamburger-menu" id="hamburgerMenu">
+        <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links">
+        <li><a href="#home" class="nav-realm-btn active" data-target="default">Ana Sayfa</a></li>
+        <li><a href="#news" class="nav-realm-btn" data-target="news">Haberler</a></li>
+        <li><a href="#games" class="nav-realm-btn" data-target="games">Oyunlar</a></li>
+        <li><a href="#tech" class="nav-realm-btn" data-target="tech">Teknoloji</a></li>
+        <li><a href="#patch-compare" class="nav-realm-btn" data-target="tech"><i class="fa-solid fa-code-compare"></i> Yama Notları</a></li>
+        <li><a href="#crosshair" class="nav-realm-btn" data-target="tech"><i class="fa-solid fa-crosshairs"></i> Crosshair Lab</a></li>
+        <li><a href="#reviews" class="nav-realm-btn" data-target="default">İncelemeler</a></li>
+        <li><button class="theme-toggle-btn" id="themeToggle" title="Temayı Değiştir"><i class="fas fa-moon"></i></button></li>
+    </ul>
+</nav>
+
+<header id="home" class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h1 class="hero-title">Oyun ve Teknoloji Dünyasına Hoş Geldiniz</h1>
+        <p>En güncel haberler, dürüst incelemeler, teknoloji trendleri ve topluluk turnuvaları burada!</p>
+        <div class="hero-buttons">
+            <a href="#news" class="btn btn-primary">Keşfetmeye Başla</a>
+        </div>
+    </div>
+</header>
+
+<div class="tip-container">
+    <div class="tip-content">
+        <div class="tip-icon"><i class="fa-solid fa-lightbulb"></i></div>
+        <div class="tip-text">
+            <h5>Günün Oyuncu İpucu</h5>
+            <p id="tipDisplay">Yükleniyor...</p>
+        </div>
+    </div>
+    <button class="tip-refresh-btn" id="refreshTip" title="Yeni İpucu Getir"><i class="fa-solid fa-rotate"></i></button>
+</div>
+
+<section id="news" class="section-container main-layout">
+    <div class="left-content">
+        <h2 class="section-title">Güncel Oyun Haberleri</h2>
+        
+        <div class="search-wrapper">
+            <div class="search-bar-container">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Haberlerde, oyunlarda veya teknoloji başlıklarında ara...">
+            </div>
+        </div>
+
+        <div class="cards-grid">
+            <div class="card horizontal-card" onclick="handleCardClick(event, 'popup-rpg')">
+                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=400&auto=format&fit=crop');"></div>
+                <div class="card-content">
+                    <div>
+                        <span class="badge badge-game">Oyun Haberleri</span>
+                        <h3>Yılın En Çok Beklenen RPG Oyunu Erteleniyor mu?</h3>
+                        <p>Oyun dünyasından sızan son iddialara göre, görselliğiyle akılları başından alan dev RPG projesinin geliştirme sürecinde bazı aksamalar yaşandı. Resmi açıklama kapıda mı?</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="read-more">Devamını Oku...</span>
+                        <button class="like-btn" onclick="toggleLike(event, this)"><i class="fa-regular fa-heart"></i> <span class="like-count">14</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card horizontal-card" onclick="handleCardClick(event, 'popup-sizi')">
+                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=400&auto=format&fit=crop');"></div>
+                <div class="card-content">
+                    <div>
+                        <span class="badge badge-game">Sızıntı</span>
+                        <h3>Yeni Nesil Açık Dünya Oyunu Detayları Sızdırıldı</h3>
+                        <p>Oyun içi ekonomi sistemine ve premium para birimlerine dair ilk detaylar oyuncuları şimdiden heyecanlandırdı.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="read-more">Devamını Oku...</span>
+                        <button class="like-btn" onclick="toggleLike(event, this)"><i class="fa-regular fa-heart"></i> <span class="like-count">8</span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <aside class="right-sidebar">
+        <h2 class="section-title">E-Spor Alanı</h2>
+        <div class="match-schedule">
+            <div class="match-card live">
+                <div class="match-status">CANLI</div>
+                <div class="match-details">
+                    <span class="tournament">Topluluk Valorant Kupası</span>
+                    <div class="teams"><span class="team">Takım A</span> <span class="vs">vs</span> <span class="team">Takım B</span></div>
+                    <span class="time"><i class="fa-regular fa-clock"></i> Bugün - 21:00</span>
+                </div>
+            </div>
+            <div class="match-card upcoming">
+                <div class="match-status">YAKLAŞAN</div>
+                <div class="match-details">
+                    <span class="tournament">Topluluk CS2 Turnuvası</span>
+                    <div class="teams"><span class="team">Alpha Esports</span> <span class="vs">vs</span> <span class="team">Delta Team</span></div>
+                    <span class="time"><i class="fa-regular fa-calendar-days"></i> Cuma - 20:00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="poll-container">
+            <div class="poll-title">Haftalık Topluluk Anketi</div>
+            <p style="font-size: 13px; margin-bottom: 12px; color: var(--text-gray);" id="pollQuestion">Manyetik switch (Hall Effect) bir oyuncu klavyesine geçmeyi düşünüyor musunuz?</p>
+            <div class="poll-options" id="pollOptionsContainer">
+                <button class="poll-option-btn" onclick="submitVote(this, 58)">
+                    <div class="poll-result-bar"></div>
+                    <div class="poll-option-text"><span>Evet, kesinlikle geçeceğim</span> <strong class="poll-percent"></strong></div>
+                </button>
+                <button class="poll-option-btn" onclick="submitVote(this, 24)">
+                    <div class="poll-result-bar"></div>
+                    <div class="poll-option-text"><span>Kararsızım, araştırmaktayım</span> <strong class="poll-percent"></strong></div>
+                </button>
+                <button class="poll-option-btn" onclick="submitVote(this, 18)">
+                    <div class="poll-result-bar"></div>
+                    <div class="poll-option-text"><span>Hayır, standart mekanik yeterli</span> <strong class="poll-percent"></strong></div>
+                </button>
+            </div>
+        </div>
+    </aside>
+</section>
+
+<section id="games" class="section-container dark-bg">
+    <h2 class="section-title">Yeni Çıkan & Popüler Oyunlar</h2>
+    <div class="cards-grid full-width-grid">
+        <div class="card horizontal-card" onclick="handleCardClick(event, 'popup-wwm')">
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1552820728-8b83bb6b773f?q=80&w=400&auto=format&fit=crop');"></div>
+            <div class="card-content">
+                <div>
+                    <span class="badge badge-new">Yeni Çıkış</span> <span class="badge badge-popular">Popüler</span>
+                    <h3>Where Winds Meet</h3>
+                    <p>Doğu estetiğini ve muazzam dövüş sanatları mekaniklerini açık dünya ile birleştiren yapım.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="read-more">Oyun Detayları...</span>
+                    <button class="like-btn" onclick="toggleLike(event, this)"><i class="fa-regular fa-heart"></i> <span class="like-count">23</span></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card horizontal-card" onclick="handleCardClick(event, 'popup-bf')">
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=400&auto=format&fit=crop');"></div>
+            <div class="card-content">
+                <div>
+                    <span class="badge badge-new">Yeni Çıkış</span> <span class="badge badge-popular">Popüler</span>
+                    <h3>Battlefield 2042</h3>
+                    <p>Geniş ölçekli haritaları ve aksiyonu ile topluluğun en çok vakit geçirdiği taktiksel FPS oyunu.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="read-more">Oyun Detayları...</span>
+                    <button class="like-btn" onclick="toggleLike(event, this)"><i class="fa-regular fa-heart"></i> <span class="like-count">19</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="tech" class="section-container tech-section">
+    <h2 class="section-title">Teknoloji Dünyası</h2>
+    <div class="cards-grid full-width-grid">
+        <div class="card horizontal-card" onclick="handleCardClick(event, 'popup-klavye')">
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?q=80&w=400&auto=format&fit=crop');"></div>
+            <div class="card-content">
+                <div>
+                    <span class="badge badge-tech">Donanım</span>
+                    <h3>Manyetik Switch Klavye Teknolojisi Neden Ezber Bozuyor?</h3>
+                    <p>Oyuncuların tepki süresini minimuma indiren özelleştirilebilir aktivasyon noktalı klavyeler.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="read-more">Devamını Oku...</span>
+                    <button class="like-btn" onclick="toggleLike(event, this)"><i class="fa-regular fa-heart"></i> <span class="like-count">31</span></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card horizontal-card" onclick="handleCardClick(event, 'popup-fps')">
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1600132806370-bf17e65e942f?q=80&w=400&auto=format&fit=crop');"></div>
+            <div class="card-content">
+                <div>
+                    <span class="badge badge-tech">Yazılım</span>
+                    <h3>Sistem Performansını Uçuracak Arka Plan Ayarları</h3>
+                    <p>Windows güncellemeleri ve disk dizin oluşturma işlemlerini optimize ederek maksimum FPS alma yolları.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="read-more">Devamını Oku...</span>
+                    <button class="like-btn" onclick="toggleLike(event, this)"><i class="fa-regular fa-heart"></i> <span class="like-count">26</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="patch-compare" class="section-container dark-bg">
+    <h2 class="section-title">Yama Karşılaştırıcı <span class="badge badge-new" style="font-size:14px; vertical-align: middle; margin-left: 10px;">GÜNCEL</span></h2>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+        <p style="color: var(--text-gray);">Son güncelleme ile gelen silah dengelemelerini ve değişimleri inceleyin.</p>
+        <select id="weaponSelect" class="search-input" style="width: auto; padding: 10px 15px; cursor: pointer; border-color: var(--accent-purple);" onchange="updatePatchCompare()">
+            <option value="vandal">Vandal [v6.11]</option>
+            <option value="phantom">Phantom [v6.11]</option>
+            <option value="operator">Operator [v6.11]</option>
+        </select>
+    </div>
+
+    <div class="stats-grid" id="patchStats" style="display: flex; flex-direction: column; gap: 15px;">
+        </div>
+</section>
+<section id="crosshair" class="section-container">
+    <h2 class="section-title">Crosshair Lab <span class="badge badge-new" style="font-size:14px; vertical-align: middle; margin-left: 10px;">YENİ</span></h2>
+    <p style="color: var(--text-gray); margin-bottom: 20px;">Kendi rekabetçi FPS nişangahını tasarla, anında önizle ve oyun içi kodunu kopyala.</p>
+    
+    <div class="lab-layout">
+        <div class="lab-preview">
+            <div class="ch-wrapper">
+                <div class="ch-line ch-top" id="chTop"></div>
+                <div class="ch-line ch-bottom" id="chBottom"></div>
+                <div class="ch-line ch-left" id="chLeft"></div>
+                <div class="ch-line ch-right" id="chRight"></div>
+                <div class="ch-dot" id="chDot"></div>
+            </div>
+        </div>
+
+        <div class="lab-controls">
+            <div class="control-group">
+                <div class="control-header">
+                    <label for="ch-length">Çizgi Uzunluğu</label>
+                    <span class="control-value" id="val-length">10</span>
+                </div>
+                <input type="range" id="ch-length" class="range-slider" min="2" max="50" value="10">
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <label for="ch-thickness">Kalınlık</label>
+                    <span class="control-value" id="val-thickness">2</span>
+                </div>
+                <input type="range" id="ch-thickness" class="range-slider" min="1" max="10" value="2">
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <label for="ch-gap">Merkez Boşluğu</label>
+                    <span class="control-value" id="val-gap">5</span>
+                </div>
+                <input type="range" id="ch-gap" class="range-slider" min="0" max="30" value="5">
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <label for="ch-color">Nişangah Rengi</label>
+                </div>
+                <input type="color" id="ch-color" class="color-picker" value="#00ffcc">
+            </div>
+
+            <div class="control-group" style="margin-top: 10px;">
+                <label class="checkbox-group">
+                    <input type="checkbox" id="ch-show-dot"> Merkez Noktası Ekle
+                </label>
+            </div>
+
+            <div class="code-output-container">
+                <input type="text" id="crosshairCode" readonly value="">
+                <button class="btn-copy" onclick="copyCrosshairCode()" id="copyBtn">Kopyala</button>
+            </div>
+        </div>
+    </div>
+</section>
+<section id="gear" class="section-container dark-bg">
+    <h2 class="section-title">Popüler Oyuncu Donanımları</h2>
+    <div class="gear-grid">
+        <div class="gear-card">
+            <div class="gear-title-row">
+                <div class="gear-name">Wraith W75 V2</div>
+                <span class="gear-type">Klavye</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 12px;">Manyetik switchli ve üst düzey tepki süreli esporcu klavyesi.</p>
+            <div class="gear-pros-cons">
+                <div class="gear-pro"><i class="fa-solid fa-circle-plus"></i> Rapid Trigger Teknolojisi</div>
+                <div class="gear-con"><i class="fa-solid fa-circle-minus"></i> Yazılım Alışma Süreci</div>
+            </div>
+        </div>
+        <div class="gear-card">
+            <div class="gear-title-row">
+                <div class="gear-name">Superlight 2 DEX</div>
+                <span class="gear-type">Mouse</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 12px;">Ergonomik, ultra hafif ve 8K polling destekli kablosuz fare.</p>
+            <div class="gear-pros-cons">
+                <div class="gear-pro"><i class="fa-solid fa-circle-plus"></i> Kusursuz Sensör Gecikmesi</div>
+                <div class="gear-con"><i class="fa-solid fa-circle-minus"></i> Yüksek Fiyat Bandı</div>
+            </div>
+        </div>
+        <div class="gear-card">
+            <div class="gear-title-row">
+                <div class="gear-name">Wraith Studio Daydream</div>
+                <span class="gear-type">Deskmat</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 12px;">Hibrit yüzey yapısına sahip, kayma kontrollü özel tasarım masa matı.</p>
+            <div class="gear-pros-cons">
+                <div class="gear-pro"><i class="fa-solid fa-circle-plus"></i> Dikişsiz Kenar ve Akıcı Kayma</div>
+                <div class="gear-con"><i class="fa-solid fa-circle-minus"></i> Sınırlı Stok Durumu</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="reviews" class="section-container">
+    <h2 class="section-title">Dürüst İncelemeler</h2>
+    <div class="review-main">
+        <div class="review-header">
+            <h3>Son Zamanların En Çok Konuşulan Taktiksel Nişancı Oyunu İncelemesi</h3>
+            <span class="rating">Skor: 8.5/10</span>
+        </div>
+        <p class="review-body">Gerek optimizasyonu gerekse topluluk etkinlikleriyle bu yapım uzun süre liderliği elinde tutacak gibi görünüyor.</p>
+        <div class="comments-section">
+            <h4><i class="fa-regular fa-comments"></i> Topluluk Yorumları (<span id="comment-count">1</span>)</h4>
+            <div class="comment-form-container">
+                <form id="commentForm">
+                    <div class="form-group"><input type="text" id="username" placeholder="Kullanıcı Adınız" required></div>
+                    <div class="form-group"><textarea id="commentText" rows="3" placeholder="Yorumunuzu yazın..." required></textarea></div>
+                    <button type="submit" class="btn btn-submit">Yorumu Gönder</button>
+                </form>
+            </div>
+            <div class="comments-list" id="commentsList">
+                <div class="comment-card">
+                    <div class="comment-avatar"><i class="fa-solid fa-user-astronaut"></i></div>
+                    <div class="comment-content">
+                        <h5>Oyuncu_Adam <span class="comment-date">Şimdi</span></h5>
+                        <p>Bence oyunun vuruş hissiyatı harika olmuş. İnceleme için teşekkürler!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div id="popup-rpg" class="modal-overlay">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeModal('popup-rpg')">&times;</span>
+        <h2>Chrono Odyssey: Erteleme mi Geliyor?</h2>
+        <p>Görsel kalitesi, devasa açık dünyası ve zamanı manipüle etme mekanikleriyle RPG tutkunlarının radarında olan <strong>Chrono Odyssey</strong> cephesinden kulisleri hareketlendiren iddialar sızdı.</p>
+    </div>
+</div>
+
+<div id="popup-sizi" class="modal-overlay">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeModal('popup-sizi')">&times;</span>
+        <h2>Yeni Nesil Açık Dünya Oyunu Detayları</h2>
+        <p>Sızdırılan dosyalara göre oyunda dinamik hava olayları ve tamamen oyuncu odaklı bir pazar yeri bulunacak.</p>
+    </div>
+</div>
+
+<div id="popup-wwm" class="modal-overlay">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeModal('popup-wwm')">&times;</span>
+        <h2>Where Winds Meet Detayları</h2>
+        <p>Wuxia kültürünü sonuna kadar yaşatan bu yapım, dövüş sanatları mekanikleriyle harika bir özgürlük sunuyor.</p>
+    </div>
+</div>
+
+<div id="popup-bf" class="modal-overlay">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeModal('popup-bf')">&times;</span>
+        <h2>Battlefield 2042 Topluluk Alanı</h2>
+        <p>Devasa 128 kişilik haritaları ve yeni aksiyon haritasıyla taktiksel FPS heyecanı tam gaz devam ediyor.</p>
+    </div>
+</div>
+
+<div id="popup-klavye" class="modal-overlay">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeModal('popup-klavye')">&times;</span>
+        <h2>Manyetik Switch Teknolojisi Nedir?</h2>
+        <p>Rapid Trigger özelliği sayesinde parmağını tuştan kaldırdığın an komut kesilir, bu da rekabetçi FPS oyunlarında kusursuz bir avantaj sağlar.</p>
+    </div>
+</div>
+
+<div id="popup-fps" class="modal-overlay">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeModal('popup-fps')">&times;</span>
+        <h2>Maksimum FPS İçin İnce Ayarlar</h2>
+        <p>Windows güncellemeleri ve disk dizin oluşturma işlemlerini optimize ederek maksimum FPS alma yolları.</p>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2026 Oyuncu Topluluğu. Tüm Hakları Saklıdır.</p>
+</footer>
+
+<script>
+// --- YAMA KARŞILAŞTIRICI VERİTABANI ---
+const patchData = {
+    vandal: [
+        { name: "Hasar (Kafa)", old: 160, new: 152, status: "nerf", unit: "" },
+        { name: "İlk Mermi Sapması", old: 0.25, new: 0.20, status: "buff", unit: "°" },
+        { name: "Şarjör Kapasitesi", old: 25, new: 25, status: "neutral", unit: " Mermi" }
+    ],
+    phantom: [
+        { name: "Atış Hızı", old: 11, new: 11.4, status: "buff", unit: " mermi/sn" },
+        { name: "Hasar (Mesafe 15-30m)", old: 35, new: 35, status: "neutral", unit: "" },
+        { name: "Yedek Şarjör", old: 2, new: 3, status: "buff", unit: " Adet" }
+    ],
+    operator: [
+        { name: "Kredi Fiyatı", old: 4700, new: 4500, status: "buff", unit: "" },
+        { name: "Kuşanma Süresi", old: 1.5, new: 1.7, status: "nerf", unit: " sn" }
+    ]
+};
+
+function updatePatchCompare() {
+    const weapon = document.getElementById('weaponSelect').value;
+    const statsContainer = document.getElementById('patchStats');
+    statsContainer.innerHTML = '';
+    
+    patchData[weapon].forEach(stat => {
+        let badgeClass = 'badge-neutral';
+        let badgeText = 'DEĞİŞMEDİ';
+        if(stat.status === 'buff') { badgeClass = 'badge-buff'; badgeText = 'BUFF'; }
+        if(stat.status === 'nerf') { badgeClass = 'badge-nerf'; badgeText = 'NERF'; }
+        
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `
+            <div class="stat-info">
+                <span class="stat-name">${stat.name}</span>
+                <span class="badge ${badgeClass}">${badgeText}</span>
+            </div>
+            <div class="stat-comparison">
+                <div class="stat-val old">Eski: <span>${stat.old}${stat.unit}</span></div>
+                <div class="stat-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                <div class="stat-val new ${stat.status}">Yeni: <span>${stat.new}${stat.unit}</span></div>
+            </div>
+        `;
+        statsContainer.appendChild(card);
+    });
+}
+
+// YAMA KARŞILAŞTIRICI İLK YÜKLEME
+document.addEventListener('DOMContentLoaded', updatePatchCompare);
+
+
+function openModal(id) { 
+    document.getElementById(id).style.display = 'block'; 
+    document.body.style.overflow = 'hidden'; // Arka plan kaymasını engeller
+}
+function closeModal(id) { 
+    document.getElementById(id).style.display = 'none'; 
+    document.body.style.overflow = ''; // Kilidi açar
+}
+
+function handleCardClick(event, id) {
+    if (event.target.closest('.like-btn')) return; 
+    openModal(id);
+}
+
+function toggleLike(event, button) {
+    event.stopPropagation();
+    const icon = button.querySelector('i');
+    const countSpan = button.querySelector('.like-count');
+    let currentCount = parseInt(countSpan.innerText);
+
+    if (button.classList.contains('liked')) {
+        button.classList.remove('liked');
+        icon.className = 'fa-regular fa-heart';
+        countSpan.innerText = currentCount - 1;
+    } else {
+        button.classList.add('liked');
+        icon.className = 'fa-solid fa-heart';
+        countSpan.innerText = currentCount + 1;
+    }
+}
+
+// ANKET SİSTEMİ MANTIĞI
+function submitVote(btn, basePercent) {
+    const container = document.getElementById('pollOptionsContainer');
+    const allButtons = container.querySelectorAll('.poll-option-btn');
+    
+    allButtons.forEach(button => {
+        button.disabled = true; 
+        const bar = button.querySelector('.poll-result-bar');
+        const percentText = button.querySelector('.poll-percent');
+        
+        let targetPercent = (button === btn) ? (basePercent + 1) : (button === allButtons[0] ? 57 : button === allButtons[1] ? 24 : 18);
+        
+        bar.style.width = targetPercent + '%';
+        percentText.innerText = '%' + targetPercent;
+    });
+    btn.style.borderColor = 'var(--accent-purple)';
+}
+
+// OYUNCU İPUÇLARI HAVUZU
+const tips = [
+    "Sistem gecikmesini (input lag) düşürmek için ekran kartı sürücelerini DDU ile temizleyip sıfırdan kurun.",
+    "Manyetik klavyelerde Rapid Trigger aktivasyon noktasını 0.2mm yapmak rekabetçi oyunlarda refleks avantajı sağlar.",
+    "Windows arka planında çalışan 'Disk Dizin Oluşturma' (Indexing) özelliğini kapatarak oyunlardaki anlık dropların önüne geçebilirsiniz.",
+    "Kablosuz farelerinizin verici (dongle) ünitesini mousepad'e olabildiğince yakın konumlandırarak sinyal parazitini engelleyin.",
+    "FPS oyunlarında maksimum kararlılık için hem dikey senkronizasyonu (V-Sync) kapatın hem de Windows Oyun Modunu aktif tutun."
+];
+
+function loadRandomTip() {
+    const display = document.getElementById('tipDisplay');
+    if(display) {
+        const randomIndex = Math.floor(Math.random() * tips.length);
+        display.innerText = tips[randomIndex];
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadRandomTip();
+    const refreshBtn = document.getElementById('refreshTip');
+    if(refreshBtn) refreshBtn.addEventListener('click', loadRandomTip);
+
+    // Mobil Menü Mantığı
+    const hamburgerBtn = document.getElementById('hamburgerMenu');
+    const navLinks = document.querySelector('.nav-links');
+    if(hamburgerBtn) {
+        hamburgerBtn.addEventListener('click', function() {
+            navLinks.classList.toggle('active-menu');
+            const icon = this.querySelector('i');
+            if(navLinks.classList.contains('active-menu')) {
+                icon.className = 'fas fa-times';
+            } else {
+                icon.className = 'fas fa-bars';
+            }
+        });
+    }
+
+    // ALICE HARİKALAR DİYARI GEÇİŞ TETİKLEYİCİSİ
+    const realmButtons = document.querySelectorAll('.nav-realm-btn');
+    realmButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            realmButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const targetRealm = this.getAttribute('data-target');
+            if (targetRealm === 'default') {
+                document.documentElement.removeAttribute('data-realm');
+            } else {
+                document.documentElement.setAttribute('data-realm', targetRealm);
+            }
+            // Mobilde sekme seçilince menüyü otomatik kapatır
+            if(navLinks && navLinks.classList.contains('active-menu')) {
+                navLinks.classList.remove('active-menu');
+                if(hamburgerBtn) hamburgerBtn.querySelector('i').className = 'fas fa-bars';
+            }
+        });
+    });
+
+    // CANLI ARAMA MOTORU MANTIĞI
+    const searchInput = document.getElementById('searchInput');
+    let searchTimeout;
+    
+    if(searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.toLowerCase().trim();
+            
+            searchTimeout = setTimeout(() => {
+                const cards = document.querySelectorAll('.card.horizontal-card');
+
+                cards.forEach(card => {
+                    const title = card.querySelector('h3').innerText.toLowerCase();
+                    const text = card.querySelector('p').innerText.toLowerCase();
+                    const badge = card.querySelector('.badge').innerText.toLowerCase();
+
+                    if (title.includes(query) || text.includes(query) || badge.includes(query)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }, 300);
+        });
+    }
+
+    // Tema Değiştirici
+    const themeToggleBtn = document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('siteTheme');
+    
+    if(themeToggleBtn) {
+        const themeIcon = themeToggleBtn.querySelector('i');
+        
+        if (savedTheme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+            themeIcon.className = 'fas fa-sun';
+        }
+
+        themeToggleBtn.addEventListener('click', function() {
+            if (document.documentElement.getAttribute('data-theme') === 'light') {
+                document.documentElement.removeAttribute('data-theme');
+                themeIcon.className = 'fas fa-moon';
+                localStorage.setItem('siteTheme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                themeIcon.className = 'fas fa-sun';
+                localStorage.setItem('siteTheme', 'light');
+            }
+        });
+    }
+
+    // Yorum Sistemi
+    const commentForm = document.getElementById('commentForm');
+    if(commentForm) {
+        commentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const usernameInput = document.getElementById('username');
+            const commentTextInput = document.getElementById('commentText');
+            const username = usernameInput.value.trim();
+            const commentText = commentTextInput.value.trim();
+            if (username === "" || commentText === "") return;
+
+            const commentsList = document.getElementById('commentsList');
+            const commentCard = document.createElement('div');
+            commentCard.className = 'comment-card';
+            commentCard.innerHTML = `<div class="comment-avatar"><i class="fa-solid fa-user-astronaut"></i></div><div class="comment-content"><h5>${username} <span class="comment-date">Şimdi</span></h5><p>${commentText}</p></div>`;
+            commentsList.insertBefore(commentCard, commentsList.firstChild);
+
+            const commentCountSpan = document.getElementById('comment-count');
+            commentCountSpan.innerText = parseInt(commentCountSpan.innerText) + 1;
+            usernameInput.value = ""; commentTextInput.value = "";
+        });
+    }
+
+    // CROSSHAIR LAB MOTORU
+    const chLength = document.getElementById('ch-length');
+    const chThickness = document.getElementById('ch-thickness');
+    const chGap = document.getElementById('ch-gap');
+    const chColor = document.getElementById('ch-color');
+    const chShowDot = document.getElementById('ch-show-dot');
+
+    const topL = document.getElementById('chTop');
+    const botL = document.getElementById('chBottom');
+    const leftL = document.getElementById('chLeft');
+    const rightL = document.getElementById('chRight');
+    const dotL = document.getElementById('chDot');
+    const lines = [topL, botL, leftL, rightL];
+
+    function updateCrosshair() {
+        const length = parseInt(chLength.value);
+        const thickness = parseInt(chThickness.value);
+        const gap = parseInt(chGap.value);
+        const color = chColor.value;
+        const hasDot = chShowDot.checked;
+
+        // Değer etiketlerini güncelle
+        document.getElementById('val-length').innerText = length;
+        document.getElementById('val-thickness').innerText = thickness;
+        document.getElementById('val-gap').innerText = gap;
+
+        // Renkleri güncelle
+        lines.forEach(line => line.style.backgroundColor = color);
+        dotL.style.backgroundColor = color;
+
+        // Nokta görünürlüğü ve boyutu
+        dotL.style.display = hasDot ? 'block' : 'none';
+        dotL.style.width = thickness + 'px';
+        dotL.style.height = thickness + 'px';
+        dotL.style.top = -(thickness / 2) + 'px';
+        dotL.style.left = -(thickness / 2) + 'px';
+
+        // Üst Çizgi
+        topL.style.width = thickness + 'px';
+        topL.style.height = length + 'px';
+        topL.style.left = -(thickness / 2) + 'px';
+        topL.style.bottom = gap + 'px';
+
+        // Alt Çizgi
+        botL.style.width = thickness + 'px';
+        botL.style.height = length + 'px';
+        botL.style.left = -(thickness / 2) + 'px';
+        botL.style.top = gap + 'px';
+
+        // Sol Çizgi
+        leftL.style.height = thickness + 'px';
+        leftL.style.width = length + 'px';
+        leftL.style.top = -(thickness / 2) + 'px';
+        leftL.style.right = gap + 'px';
+
+        // Sağ Çizgi
+        rightL.style.height = thickness + 'px';
+        rightL.style.width = length + 'px';
+        rightL.style.top = -(thickness / 2) + 'px';
+        rightL.style.left = gap + 'px';
+
+        // Kod Üretimi ve Atama
+        const cleanColor = color.replace('#', '');
+        const generatedCode = `0;P;c;${cleanColor};l;${length};t;${thickness};o;1;g;${gap};d;${hasDot ? 1 : 0}`;
+        document.getElementById('crosshairCode').value = generatedCode;
+    }
+
+    if(chLength) {
+        [chLength, chThickness, chGap, chColor, chShowDot].forEach(input => {
+            input.addEventListener('input', updateCrosshair);
+        });
+        updateCrosshair(); // Sayfa yüklendiğinde bir kere çalıştır
+    }
+
+    // Modal Arka Plan Tıklaması
+    window.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-overlay')) closeModal(e.target.id);
+    });
+});
+
+// KOPYALAMA FONKSİYONU
+function copyCrosshairCode() {
+    const codeInput = document.getElementById('crosshairCode');
+    codeInput.select();
+    codeInput.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(codeInput.value);
+
+    const copyBtn = document.getElementById('copyBtn');
+    copyBtn.innerText = 'Kopyalandı!';
+    copyBtn.style.backgroundColor = '#00ff66';
+    
+    setTimeout(() => {
+        copyBtn.innerText = 'Kopyala';
+        copyBtn.style.backgroundColor = 'var(--accent-neon)';
+    }, 2000);
+}
+</script>
+</body>
+</html>
